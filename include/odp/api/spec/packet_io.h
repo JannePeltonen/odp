@@ -22,6 +22,7 @@ extern "C" {
 #include <odp/api/deprecated.h>
 #include <odp/api/packet_io_stats.h>
 #include <odp/api/queue.h>
+#include <odp/api/reassembly.h>
 #include <odp/api/time.h>
 #include <odp/api/packet.h>
 
@@ -594,6 +595,9 @@ typedef struct odp_pktio_config_t {
 	 */
 	odp_bool_t outbound_ipsec;
 
+	/** Packet input reassembly configuration */
+	odp_reassembly_config_t reassembly;
+
 } odp_pktio_config_t;
 
 /**
@@ -672,6 +676,9 @@ typedef struct odp_pktio_capability_t {
 
 	/** Packet input vector capability */
 	odp_pktin_vector_capability_t vector;
+
+	/** Packet input reassembly capability */
+	odp_reassembly_capability_t reassembly;
 
 } odp_pktio_capability_t;
 

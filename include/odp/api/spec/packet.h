@@ -238,6 +238,34 @@ typedef struct odp_packet_data_range {
 } odp_packet_data_range_t;
 
 /**
+ * Reassembly status in packet
+ */
+typedef enum odp_reass_packet_status_t {
+	/** Reassembly was not attempted */
+	ODP_REASS_PACKET_NONE = 0,
+
+	/** Reassembly was attempted but is incomplete. One or more distinct
+	  * fragments are available in the packet. The fragments are recovered
+	  * using ``odp_reass_result()``. */
+	ODP_REASS_PACKET_INCOMPLETE,
+
+	/** Reassembly is successfully done and the fragments are delivered as a
+	  * single odp_packet_t. */
+	ODP_REASS_PACKET_COMPLETE,
+} odp_reass_packet_status_t;
+
+/**
+ * Result from odp_reass_result()
+ */
+typedef struct odp_reass_packet_result_t {
+	/** Number of frags recovered */
+	uint16_t num_frags;
+
+	/** Time, in ns, spent in pktio input waiting for reassembly */
+	uint64_t wait_time;
+} odp_reass_packet_result_t;
+
+/**
  * Event subtype of a packet
  *
  * Returns the subtype of a packet event. Subtype tells if the packet contains
@@ -387,6 +415,29 @@ odp_event_t odp_packet_to_event(odp_packet_t pkt);
  */
 void odp_packet_to_event_multi(const odp_packet_t pkt[], odp_event_t ev[],
 			       int num);
+
+/**
+ * Get partial reassembly result from a packet
+ *
+ * In case of incomplete reassembly, a packet carries information on
+ * the time already used for the reassembly attempt and one or more
+ * fragments that do not necessarily correspond to the original
+ * received fragments.
+ *
+ * This function may be called only if the reassembly status of a packet
+ * is ODP_PACKET_REASS_INCOMPLETE.
+ *
+ * @param      pkt   Incompletely reassembled packet. The packet will
+ *                   be consumed if the function succeeds.
+ * @param[out] frags Packet handle array for output. The size of this array must
+ *                   be at least `odp_reassembly_config_t.ip.max_num_frags`.
+ * @param[out] res   Pointer to result structure
+ *
+ * @retval 0 on success
+ * @retval <0 on failure
+ */
+int odp_reass_result(odp_packet_t pkt, odp_packet_t frags[],
+		     odp_reass_packet_result_t *res);
 
 /*
  *
@@ -2209,6 +2260,19 @@ void odp_packet_vector_print(odp_packet_vector_t pktv);
  * odp_packet_vector_t handle.
  */
 uint64_t odp_packet_vector_to_u64(odp_packet_vector_t hdl);
+
+/**
+ * Check reassembly status of the packet
+ *
+ * When reassembly is enabled, application must check reassembly status of the
+ * packet and retrieve reassembly result from the packet before performing any
+ * packet operation.
+ *
+ * @param  pkt Packet handle
+ * @return     Reassembly status
+ *
+ */
+odp_reass_packet_status_t odp_reass_status(odp_packet_t pkt);
 
 /*
  *
