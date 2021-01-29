@@ -154,9 +154,10 @@ typedef struct odp_ipsec_inbound_config_t {
 	 *  fragment reassembly. The enable flag does not turn on reassembly
 	 *  but tells if reassembly may be enabled in SA parameters.
 	 *
-	 *  The enable flag may be set only if retain_outer is ODP_PROTO_LAYER_NONE.
+	 *  The enable flag may be set only if retain_outer is
+	 *  ODP_PROTO_LAYER_NONE.
 	 */
-	odp_reassembly_config_t reassembly;
+	odp_reass_config_t reassembly;
 
 } odp_ipsec_inbound_config_t;
 
@@ -284,7 +285,7 @@ typedef struct odp_ipsec_capability_t {
 	odp_support_t inline_ipsec_tm;
 
 	/** Post IPSEC reassembly capability */
-	odp_reassembly_capability_t reassembly;
+	odp_reass_capability_t reassembly;
 
 } odp_ipsec_capability_t;
 
@@ -773,19 +774,22 @@ typedef struct odp_ipsec_sa_param_t {
 
 			/** Enable reassembly of IPsec tunneled fragments
 			 *
-			 *  Attempt reassembly of fragments after IPsec tunnel decapsulation.
+			 *  Attempt reassembly of fragments after IPsec tunnel
+			 *  decapsulation.
 			 *
-			 *  Reassembly is attempted for inline or asynchronously processed packets,
-			 *  not for packets processed using the synchronous API function.
+			 *  Reassembly is attempted for inline or
+			 *  asynchronously processed packets, not for packets
+			 *  processed using the synchronous API function.
 			 *
-			 *  Fragments received through different SAs will not be reassembled into
-			 *  the same packet.
+			 *  Fragments received through different SAs will not
+			 *  be reassembled into the same packet.
 			 *
-			 *  IPsec statistics reflect IPsec processing before reassembly and thus
-			 *  count all individual fragments.
+			 *  IPsec statistics reflect IPsec processing before
+			 *  reassembly and thus count all individual fragments.
 			 *
-			 *  Reassembly may be enabled for an SA only if reassembly was enabled
-			 *  in the global IPsec configuration.
+			 *  Reassembly may be enabled for an SA only if
+			 *  reassembly was enabled in the global IPsec
+			 *  configuration.
 			 *
 			 *  @see odp_ipsec_config()
 			 *

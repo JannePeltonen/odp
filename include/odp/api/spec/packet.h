@@ -238,32 +238,32 @@ typedef struct odp_packet_data_range {
 } odp_packet_data_range_t;
 
 /**
- * Reassembly status in packet
+ * Reassembly status of a packet
  */
-typedef enum odp_reass_packet_status_t {
+typedef enum odp_packet_reass_status_t {
 	/** Reassembly was not attempted */
 	ODP_REASS_PACKET_NONE = 0,
 
-	/** Reassembly was attempted but is incomplete. One or more distinct
-	  * fragments are available in the packet. The fragments are recovered
-	  * using ``odp_reass_result()``. */
+	/** Reassembly was attempted but is incomplete. Partial reassembly
+	 *  result can be accessed using ``odp_packet_reass_state()``. */
 	ODP_REASS_PACKET_INCOMPLETE,
 
-	/** Reassembly is successfully done and the fragments are delivered as a
-	  * single odp_packet_t. */
+	/** Reassembly was successfully done. The packet has been
+	 *  reassembled from multiple received fragments.
+	 */
 	ODP_REASS_PACKET_COMPLETE,
-} odp_reass_packet_status_t;
+} odp_packet_reass_status_t;
 
 /**
- * Result from odp_reass_result()
+ * Result from odp_packet_reass_state()
  */
-typedef struct odp_reass_packet_result_t {
-	/** Number of frags recovered */
+typedef struct odp_packet_reass_state_t {
+	/** Number of fragments returned */
 	uint16_t num_frags;
 
-	/** Time, in ns, spent in pktio input waiting for reassembly */
-	uint64_t wait_time;
-} odp_reass_packet_result_t;
+        /** Time, in ns, since the reception of the first received fragment */
+	uint64_t elapsed_time;
+} odp_packet_reass_state_t;
 
 /**
  * Event subtype of a packet
@@ -417,12 +417,12 @@ void odp_packet_to_event_multi(const odp_packet_t pkt[], odp_event_t ev[],
 			       int num);
 
 /**
- * Get partial reassembly result from a packet
+ * Get partial reassembly state from a packet
  *
  * In case of incomplete reassembly, a packet carries information on
  * the time already used for the reassembly attempt and one or more
- * fragments that do not necessarily correspond to the original
- * received fragments.
+ * fragments. The fragments are not necessarily the original received
+ * fragments but may be partially reassembled parts of the packet.
  *
  * This function may be called only if the reassembly status of a packet
  * is ODP_PACKET_REASS_INCOMPLETE.
@@ -436,8 +436,8 @@ void odp_packet_to_event_multi(const odp_packet_t pkt[], odp_event_t ev[],
  * @retval 0 on success
  * @retval <0 on failure
  */
-int odp_reass_result(odp_packet_t pkt, odp_packet_t frags[],
-		     odp_reass_packet_result_t *res);
+int odp_packet_reass_state(odp_packet_t pkt, odp_packet_t frags[],
+			   odp_packet_reass_state_t *res);
 
 /*
  *
@@ -2272,7 +2272,7 @@ uint64_t odp_packet_vector_to_u64(odp_packet_vector_t hdl);
  * @return     Reassembly status
  *
  */
-odp_reass_packet_status_t odp_reass_status(odp_packet_t pkt);
+odp_packet_reass_status_t odp_packet_reass_status(odp_packet_t pkt);
 
 /*
  *

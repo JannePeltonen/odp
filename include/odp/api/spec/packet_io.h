@@ -596,7 +596,7 @@ typedef struct odp_pktio_config_t {
 	odp_bool_t outbound_ipsec;
 
 	/** Packet input reassembly configuration */
-	odp_reassembly_config_t reassembly;
+	odp_reass_config_t reassembly;
 
 } odp_pktio_config_t;
 
@@ -678,7 +678,7 @@ typedef struct odp_pktio_capability_t {
 	odp_pktin_vector_capability_t vector;
 
 	/** Packet input reassembly capability */
-	odp_reassembly_capability_t reassembly;
+	odp_reass_capability_t reassembly;
 
 } odp_pktio_capability_t;
 
