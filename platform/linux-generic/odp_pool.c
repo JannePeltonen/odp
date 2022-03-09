@@ -704,11 +704,15 @@ odp_pool_t _odp_pool_create(const char *name, const odp_pool_param_t *params,
 		seg_len = CONFIG_PACKET_MAX_SEG_LEN;
 		max_len = _odp_pool_glb->config.pkt_max_len;
 
+		/* Reduce default segment length to packet length */
 		if (params->pkt.len &&
 		    params->pkt.len < CONFIG_PACKET_MAX_SEG_LEN)
 			seg_len = params->pkt.len;
-		if (params->pkt.seg_len && params->pkt.seg_len > seg_len)
+		/* Use explicitly requested segment length */
+		if (params->pkt.seg_len)
 			seg_len = params->pkt.seg_len;
+		if (seg_len > CONFIG_PACKET_MAX_SEG_LEN)
+			seg_len = CONFIG_PACKET_MAX_SEG_LEN;
 		if (seg_len < CONFIG_PACKET_SEG_LEN_MIN)
 			seg_len = CONFIG_PACKET_SEG_LEN_MIN;
 
