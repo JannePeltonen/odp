@@ -167,6 +167,10 @@ int odp_pktio_config(odp_pktio_t pktio, const odp_pktio_config_t *config);
  * success, no queues are setup on failure. Each call reconfigures input queues
  * and may invalidate all previous queue handles.
  *
+ * If traffic class aware queueing is enabled, each enabled traffic class
+ * has a separate set of 1 or more queues amd this function must be called
+ * for each enabled traffic class.
+ *
  * @param pktio    Packet IO handle
  * @param param    Packet input queue configuration parameters. Uses defaults
  *                 when NULL.
@@ -666,6 +670,26 @@ int odp_pktio_mac_addr_set(odp_pktio_t pktio, const void *mac_addr,
  * @note The default_cos has to be unique per odp_pktio_t instance.
  */
 int odp_pktio_default_cos_set(odp_pktio_t pktio, odp_cos_t default_cos);
+
+/**
+ * Setup per-port per-TC default class-of-service
+ *
+ * This function sets the classifier CoS object for a given pktio and TC,
+ * when both traffic class based queuing and classifier are enabled for
+ * the pktio.
+ *
+ * @param pktio        Ingress port pktio handle.
+ * @param tc           Traffic class.
+ * @param cos          Class-of-service set to all packets arriving at this
+ *                     ingress port and mapped to the given TC.
+ *
+ * @retval  0 on success
+ * @retval <0 on failure
+ *
+ * @note The cos must not be used elsewhere (i.e. with any other pktio or TC
+ *       or as a destination CoS of any PMR).
+ */
+int odp_pktio_cos_set(odp_pktio_t pktio, uint8_t tc, odp_cos_t cos);
 
 /**
  * Setup per-port error class-of-service

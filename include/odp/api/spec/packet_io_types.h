@@ -78,6 +78,9 @@ extern "C" {
  * odp_pktio_capability() to check the maximum number of queues per interface.
  */
 
+/** Numoer of pktio priorities for TC aware queueing */
+#define ODP_NUM_PKTIO_PRIO 8
+
 /**
  * Packet input mode
  */
@@ -218,6 +221,13 @@ typedef struct odp_pktin_vector_config_t {
  * Packet input queue parameters
  */
 typedef struct odp_pktin_queue_param_t {
+	/** Traffic class which this configuration is for
+	  *
+	  * Ignored if traffic class aware queuing is not enabled.
+	  * The default value is zero.
+	  */
+	uint8_t tc;
+
 	/** Operation mode
 	  *
 	  * The default value is ODP_PKTIO_OP_MT. Application may enable
@@ -546,6 +556,34 @@ typedef struct odp_pktio_parser_config_t {
 
 } odp_pktio_parser_config_t;
 
+typedef struct odp_pktio_tc_config_t {
+	/** Enable traffic class based queuing.
+	  *
+	  * The remaining fields of this structure are ignored if traffic
+	  * class based queueing is not enabled. Th default value is false.
+	  */
+	odp_bool_t enable_tc;
+
+	/** Number of RX traffic classes.
+	  *
+	  * There will be a separate set of RX queue(s) for each traffic class.
+	  * The default value is 1.
+	  */
+	uint8_t num_rx_tc;
+
+	/** RX PCP to TC mapping
+	  *
+	  * For each VLAN user priority (0 - 7), specify the TC to which
+	  * received packets are mapped for the purpose of RX queue selection.
+	  * Multiple priorities can map to the same TC.
+	  *
+	  * TC values range from 0 to num_rx_tc - 1. The default value for
+	  * each priority is zero.
+	  */
+	uint8_t rx_prio_to_tc[ODP_NUM_PKTIO_PRIO];
+
+} odp_pktio_tc_config_t;
+
 /**
  * Packet IO configuration options
  *
@@ -629,6 +667,9 @@ typedef struct odp_pktio_config_t {
 
 	/** Packet input reassembly configuration */
 	odp_reass_config_t reassembly;
+
+	/** Class-of-service configuration */
+	odp_pktio_tc_config_t tc_config;
 
 } odp_pktio_config_t;
 
@@ -812,6 +853,24 @@ typedef struct odp_pktin_vector_capability_t {
 } odp_pktin_vector_capability_t;
 
 /**
+ * Traffic class based queueing capabilities
+ */
+typedef struct odp_pktio_tc_capability_t {
+	/** Traffic class based queueing is supported in RX */
+	odp_bool_t rx_tc_supported;
+
+	/** Maximum number of RX traffic classes */
+	uint8_t max_num_rx_tc;
+
+	/** Maximum number of input queues across all TCs when TC based
+	 *  queuing is enabled. */
+	uint32_t max_rx_queues;
+
+	/** Maximum number of input queue in one TC */
+	uint32_t max_rx_queues_per_tc;
+} odp_pktio_tc_capability_t;
+
+/**
  * Packet IO capabilities
  *
  * Note that interface capabilities may differ between packet output modes. For example,
@@ -819,7 +878,7 @@ typedef struct odp_pktin_vector_capability_t {
  * ODP_PKTOUT_MODE_DIRECT mode.
  */
 typedef struct odp_pktio_capability_t {
-	/** Maximum number of input queues */
+	/** Maximum number of input queues without TC aware queueing */
 	uint32_t max_input_queues;
 
 	/** Maximum number of output queues
@@ -913,6 +972,9 @@ typedef struct odp_pktio_capability_t {
 
 	/** Packet input reassembly capability */
 	odp_reass_capability_t reassembly;
+
+	/** Traffic class aware queueing capability */
+	odp_pktio_tc_capability_t tc;
 
 	/** Statistics counters capabilities */
 	odp_pktio_stats_capability_t stats;
