@@ -13,6 +13,7 @@ extern "C" {
 #include <odp/api/byteorder.h>
 #include <odp_cpu.h>
 #include <stdint.h>
+#include <string.h>
 
 /*
  * Compute the final Internet checksum (RFC 1071) based on a partial
@@ -28,6 +29,21 @@ static inline uint16_t chksum_finalize(uint64_t sum)
 	 * are discarded by the implicit cast to the return type.
 	 */
 	return (sum >> 16) + sum;
+}
+
+
+static inline uint16_t read_u16(const uint8_t *addr)
+{
+	uint16_t val;
+	memcpy(&val, addr, sizeof(val));
+	return val;
+}
+
+static inline uint32_t read_u32(const uint8_t *addr)
+{
+	uint32_t val;
+	memcpy(&val, addr, sizeof(val));
+	return val;
 }
 
 /*
@@ -60,23 +76,6 @@ static inline uint16_t chksum_finalize(uint64_t sum)
 static uint64_t chksum_partial(const void *addr, uint32_t len, uint32_t offset)
 {
 	const uint8_t *b;
-#if _ODP_UNALIGNED
-	/*
-	 * _ODP_UNALIGNED does not guarantee that all possible ways of
-	 * accessing memory can be unaligned. Make the compiler aware
-	 * of the possible unalignment so that it does not generate
-	 * instructions (such as LDM of AArch32) that require higher
-	 * alignment than one byte.
-	 */
-	typedef uint32_t x_uint32_t ODP_ALIGNED(1);
-	typedef uint16_t x_uint16_t ODP_ALIGNED(1);
-#else
-	/* In this case we can use normal types as we align manually. */
-	typedef uint32_t x_uint32_t;
-	typedef uint16_t x_uint16_t;
-#endif
-	const x_uint16_t *w;
-	const x_uint32_t *d;
 	uint64_t sum = 0;
 
 	/*
@@ -90,13 +89,13 @@ static uint64_t chksum_partial(const void *addr, uint32_t len, uint32_t offset)
 		 * We have efficient unaligned access. Just read
 		 * dwords starting at the given address.
 		 */
-		d = (const x_uint32_t *)addr;
+		b = addr;
 	} else {
 		/*
 		 * We must avoid unaligned access, so align to 4 bytes
 		 * by summing up the first up to 3 bytes.
 		 */
-		b = (const uint8_t *)addr;
+		b = addr;
 
 		if (odp_unlikely((uintptr_t)b & 1) && len >= 1) {
 			/*
@@ -111,34 +110,27 @@ static uint64_t chksum_partial(const void *addr, uint32_t len, uint32_t offset)
 			offset ^= 1;
 		}
 
-		/*
-		 * This cast increases alignment, but it's OK, since
-		 * we've made sure that the pointer value is aligned.
-		 */
-		w = (const x_uint16_t *)(uintptr_t)b;
-
-		if ((uintptr_t)w & 2 && len >= 2) {
+		if ((uintptr_t)b & 2 && len >= 2) {
 			/* Align bytes by handling an odd word. */
-			sum += *w++;
+
+			sum += read_u16(b);
+			b += 2;
 			len -= 2;
 		}
-
-		/* Increases alignment. */
-		d = (const x_uint32_t *)(uintptr_t)w;
 	}
 
 	while (len >= 32)  {
 		/* 8 dwords or 32 bytes per round. */
 
-		sum += *d++;
-		sum += *d++;
-		sum += *d++;
-		sum += *d++;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
 
-		sum += *d++;
-		sum += *d++;
-		sum += *d++;
-		sum += *d++;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
+		sum += read_u32(b); b += 4;
 
 		len -= 32;
 	}
@@ -146,25 +138,25 @@ static uint64_t chksum_partial(const void *addr, uint32_t len, uint32_t offset)
 	/* Last up to 7 dwords. */
 	switch (len >> 2) {
 	case 7:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 6:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 5:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 4:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 3:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 2:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	case 1:
-		sum += *d++;
+		sum += read_u32(b); b += 4;
 		/* FALLTHROUGH */
 	default:
 		break;
@@ -172,16 +164,15 @@ static uint64_t chksum_partial(const void *addr, uint32_t len, uint32_t offset)
 
 	len &= 3;
 
-	w = (const x_uint16_t *)d;
 	if (len > 1)  {
 		/* Last word. */
-		sum += *w++;
+		sum += read_u16(b);
+		b += 2;
 		len -= 2;
 	}
 
 	if (len) {
 		/* Last byte. */
-		b = (const uint8_t *)w;
 		sum += odp_cpu_to_be_16((uint16_t)*b << 8);
 	}
 
