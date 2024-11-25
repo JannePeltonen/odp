@@ -792,8 +792,8 @@ typedef enum odp_lso_protocol_t {
 	/** Custom protocol. LSO performs only custom field updates to the packet headers.
 	 *
 	 *  All segments except the last one are of the same size for one original packet.
-	 *  The segment size may be lower than the maximum possible and can be different
-	 *  for different packets passed to LSO processing.
+	 *  If exact_payload_len is not set, the segment size may be lower than the maximum
+	 *  possible and can be different for different packets passed to LSO processing.
 	 */
 	ODP_LSO_PROTO_CUSTOM,
 
@@ -867,6 +867,10 @@ typedef struct odp_lso_capability_t {
 	/** Maximum number of custom fields supported per LSO profile. When zero, custom
 	 *  fields are not supported. */
 	uint8_t max_num_custom;
+
+	/** Support for exactly maximal payload length for all non-last segments in custom
+	 *  LSO protocol profiles. */
+	uint8_t exact_payload_len : 1;
 
 	/** Supported LSO protocol options */
 	struct {
@@ -1124,6 +1128,11 @@ typedef struct odp_lso_profile_param_t {
 		/** Number of custom fields specified. The default value is 0. */
 		uint8_t num_custom;
 
+		/** Configuration flags for custom protocol LSO */
+		struct {
+			/** Created segments have exactly the maximum allowed payload length. */
+			unsigned int exact_payload_len : 1;
+		} flags;
 	} custom;
 
 } odp_lso_profile_param_t;
