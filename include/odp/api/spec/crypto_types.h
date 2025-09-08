@@ -1028,6 +1028,66 @@ typedef struct odp_crypto_packet_op_param_t {
 } odp_crypto_packet_op_param_t;
 
 /**
+ * Crypto operation parameters for the generic crypto op functions.
+ */
+typedef struct {
+	/**
+	 * Source packet for the crypto operation.
+	 *
+	 * Packet data to be processed is read from this packet. Packet data
+	 * metadata and layout are not altered and the packet is not consumed.
+	 * The packet can simultaneously be used by other crypto operations and
+	 * by the ODP application as long as its layout, metadata and packet
+	 * data used as input for this crypto operation are not modified.
+	 */
+	odp_packet_t pkt_src;
+
+	/**
+	 * Destination packet for the crypto operation.
+	 *
+	 * Output data of the crypto operation is written to this packet.
+	 * Packet metadata and layout are not altered. The packet can
+	 * simultaneously be used by other crypto operations and by the ODP
+	 * application as long as its layout and metadata are not altered
+	 * and the packet data range used for the output of this crypto
+	 * operation is not read from or written to.
+	 */
+	odp_packet_t pkt_dst;
+
+	/**
+	 * Completion packet for the result status of the crypto operation.
+	 *
+	 * The result status of a completed crypto operation is written to
+	 * the metadata of this packet. In case of an asynchronous crypto
+	 * operation, this packet also serves as the completion event that
+	 * is delivered to the completion queue of the crypto session.
+	 *
+	 * A crypto operation is not complete until odp_crypto_result()
+	 * is called for the completion packet. In some implementations
+	 * some crypto processing may occur within the odp_crypto_result()
+	 * function.
+	 *
+	 * The subtype of this packet is changed to ODP_EVENT_PACKET_CRYPTO
+	 * by the crypto operation.
+	 *
+	 * The crypto operation does not read or write the packet data
+	 * of this packet and does not alter the layout of the packet and
+	 * does not alter the metadata of the packet except for the
+	 * packet subtype and the crypto result.
+	 *
+	 * This packet must not by used in multiple crypto operations
+	 * simultaneously.
+	 */
+	odp_packet_t pkt_compl;
+
+	/**
+	 * Crypto operation parameters
+	 */
+	odp_crypto_packet_op_param_t param;
+
+} odp_crypto_gen_op_param_t;
+
+/**
  * Crypto API session creation return code
  */
 typedef enum {

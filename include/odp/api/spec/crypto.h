@@ -336,6 +336,54 @@ int odp_crypto_op_enq(const odp_packet_t pkt_in[],
 		      int num_pkt);
 
 /**
+ * Initialize gen crypto operation parameters to their default values.
+ *
+ * This function must be called for initializing the parameters to enable
+ * backward compatible extension of the parameter structure.
+ *
+ * @param param   Parameter structure to be initialized
+ */
+void odp_crypto_gen_op_param_init(odp_crypto_gen_op_param_t *param);
+
+/**
+ * Synhronous gen crypto operation.
+ *
+ * Performs synchronous cryptographic operations specified during session
+ * creation on the packets.
+ *
+ * The result of the crypto operation can be checked using odp_crypto_result().
+ *
+ * This function may be called for crypto sessions of operation type
+ * ODP_CRYPTO_OP_TYPE_OOP and OOP_CRYPTO_OP_TYPE_BASIC_AND_OOP.
+ *
+ * @param op       Array of operation parameters
+ * @param num_op   Number of operations in the op array
+ *
+ * @return Number of operations done (0 ... op)
+ * @retval <0 on failure
+ */
+int odp_crypto_gen_op(const odp_crypto_gen_op_param_t op[], int num_op);
+
+/**
+ * Asynchronous gen crypto operation.
+ *
+ * Performs asynchronous cryptographic operations specified during session
+ * creation on the packets.
+ *
+ * The result of the crypto operation can be checked using odp_crypto_result().
+ *
+ * This function may be called for crypto sessions of operation type
+ * ODP_CRYPTO_OP_TYPE_OOP and OOP_CRYPTO_OP_TYPE_BASIC_AND_OOP.
+ *
+ * @param op       Array of operation parameters
+ * @param num_op   Number of operations in the op array
+ *
+ * @return Number of operations started (0 ... op)
+ * @retval <0 on failure
+ */
+int odp_crypto_gen_op_enq(const odp_crypto_gen_op_param_t op[], int num_op);
+
+/**
  * @}
  */
 
