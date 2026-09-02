@@ -1569,7 +1569,8 @@ static int dpdk_open(odp_pktio_t id ODP_UNUSED,
 	/* Initialize DPDK here instead of odp_init_global() to enable running
 	 * 'make check' without root privileges */
 	if (odp_global_rw->dpdk_initialized == 0) {
-		dpdk_pktio_init();
+		if (dpdk_pktio_init())
+			return -1;
 		odp_global_rw->dpdk_initialized = 1;
 	}
 
