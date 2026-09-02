@@ -367,6 +367,8 @@ jobs:
 
   Run_process_mode:
     runs-on: ubuntu-22.04
+    env:
+      CONF: "--disable-dpdk"
     steps:
       - uses: actions/checkout@v6
       - run: sudo docker run -i -v `pwd`:/odp --privileged --shm-size 8g -e CC="${CC}" -e ARCH="${ARCH}"
