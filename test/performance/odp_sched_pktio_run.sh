@@ -67,13 +67,17 @@ run_sched_pktio()
 	GEN_PID=$!
 
 	# Run test for 1 sec
-	sleep 1
+	sleep 10
 
+	echo killing GEN
 	kill -2 ${GEN_PID}
+	echo waiting GEN
 	wait ${GEN_PID}
 
 	# Kill with SIGINT to output statistics
+	echo killing TEST
 	kill -2 ${TEST_PID}
+	echo waiting TEST
 	wait ${TEST_PID}
 
 	ret=$?
