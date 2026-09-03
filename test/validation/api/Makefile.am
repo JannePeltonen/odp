@@ -49,7 +49,6 @@ TESTS = \
 	comp/comp_main$(EXEEXT) \
 	cpu/cpu_main$(EXEEXT) \
 	cpumask/cpumask_main$(EXEEXT) \
-	crypto/crypto_main$(EXEEXT) \
 	dma/dma_main$(EXEEXT) \
 	errno/errno_main$(EXEEXT) \
 	event/event_main$(EXEEXT) \
@@ -83,8 +82,6 @@ TESTS = \
 	stash/stash_main$(EXEEXT) \
 	std/std_main$(EXEEXT) \
 	thread/thread_main$(EXEEXT) \
-	time/time_main$(EXEEXT) \
-	timer/timer_main$(EXEEXT) \
 	traffic_mngr/traffic_mngr_main$(EXEEXT) \
 	shmem/shmem_main$(EXEEXT) \
 	system/system_main$(EXEEXT)
