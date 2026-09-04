@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <odp_api.h>
 #include <odp/helper/odph_api.h>
@@ -256,6 +257,8 @@ typedef int (*send_fn_t)(odp_pktout_queue_t pktout, odp_packet_t pkt[], uint32_t
 			 int tx_mode, uint64_t *drop_bytes, const odp_packet_lso_opt_t *lso_opt);
 
 static test_global_t *test_global;
+
+static volatile sig_atomic_t sigint_received;
 
 static void print_usage(void)
 {
@@ -2964,6 +2967,7 @@ static void sig_handler(int signo)
 {
 	(void)signo;
 
+	sigint_received = 1;
 	if (test_global == NULL)
 		return;
 
@@ -2979,7 +2983,14 @@ int main(int argc, char **argv)
 	odp_shm_t shm;
 	int ret = 0;
 
-	signal(SIGINT, sig_handler);
+	/*
+	 * Catch SIGINT as soon as possible, since it may be ignored when
+	 * this program is run from a script.
+	 */
+	if (signal(SIGINT, sig_handler) == SIG_ERR) {
+		ODPH_ERR("signal() failed: %s\n", strerror(errno));
+		return 1;
+	}
 
 	/* Let helper collect its own arguments (e.g. --odph_proc) */
 	argc = odph_parse_options(argc, argv);
@@ -3026,6 +3037,9 @@ int main(int argc, char **argv)
 		ret = 1;
 		goto term;
 	}
+
+	if (sigint_received)
+		goto term;
 
 	if (parse_options(argc, argv, global)) {
 		ret = 1;
